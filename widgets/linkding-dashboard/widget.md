@@ -8,13 +8,13 @@ For the horizontal layout, the widget uses the `horizontal-cards` layout availab
 
 <details>
 <summary>Small column layout</summary>
-<img src="images/linkding-small.png" width="800px" />
-<details>
+<img src="images/linkding-small.png" width="300px" />
+</details>
 
 <details>
-<summary>Small column layout</summary>
-<img src="images/linkding-large.png" width="300px" />
-<details>
+<summary>Full column layout</summary>
+<img src="images/linkding-large.png" width="600px" />
+</details>
 
 ## Configuration
 
@@ -29,6 +29,7 @@ For the horizontal layout, the widget uses the `horizontal-cards` layout availab
   in-new-tab: true
   layout: vertical
   thumbnail-height: 10
+```
 
 ## Environment Variables
 
