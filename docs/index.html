@@ -392,21 +392,86 @@
         .replace(/^-+|-+$/g, "");
     }
 
-    function extractField(yaml, field) {
-      const regex = new RegExp(`^\\s*${field}:\\s*(.+)$`, "m");
-      const match = yaml.match(regex);
-      return match ? match[1].trim() : "";
+    function splitYamlLines(yaml) {
+      return yaml.replace(/\r\n/g, "\n").split("\n");
     }
 
-    function extractTemplate(yaml) {
-      const lines = yaml.split("\n");
-      const start = lines.findIndex(line =>
-        line.trim().startsWith("template: |")
-      );
+    function getTopLevelIndent(lines) {
+      let minIndent = null;
+      let inTemplate = false;
+      let templateIndent = -1;
+
+      for (const line of lines) {
+        if (inTemplate) {
+          const currentIndent = line.search(/\S/);
+          if (currentIndent === -1) continue;
+          if (currentIndent <= templateIndent) {
+            inTemplate = false;
+          } else {
+            continue;
+          }
+        }
+
+        if (line.trim().startsWith("template: |")) {
+          inTemplate = true;
+          templateIndent = line.search(/\S/);
+          continue;
+        }
+
+        const listTypeMatch = line.match(/^(\s*-\s*)type:\s*/);
+        if (listTypeMatch) {
+          const listIndent = listTypeMatch[1].replace(/-\s*$/, "  ").length;
+          if (minIndent === null || listIndent < minIndent) {
+            minIndent = listIndent;
+          }
+          continue;
+        }
+
+        const keyMatch = line.match(/^(\s*)[a-zA-Z0-9-]+:\s*/);
+        if (!keyMatch) continue;
+
+        const indentLen = keyMatch[1].length;
+        if (minIndent === null || indentLen < minIndent) {
+          minIndent = indentLen;
+        }
+      }
+
+      return minIndent;
+    }
+
+    function isTopLevelLine(line, topIndent) {
+      if (topIndent === null) return true;
+      return line.search(/\S/) === topIndent;
+    }
+
+    function extractField(lines, field, topIndent) {
+      const regex = new RegExp(`^\\s*${field}:\\s*(.+)$`);
+      for (const line of lines) {
+        const match = line.match(regex);
+        if (!match) continue;
+        if (!isTopLevelLine(line, topIndent)) continue;
+        return match[1].trim();
+      }
+      return "";
+    }
+
+    function extractTemplate(lines, topIndent) {
+      let start = -1;
+      let templateIndent = -1;
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (!line.trim().startsWith("template: |")) continue;
+        if (!isTopLevelLine(line, topIndent)) continue;
+        start = i;
+        templateIndent = line.search(/\S/);
+        break;
+      }
 
       if (start === -1) return "";
 
       const result = [];
+      let contentIndent = null;
 
       for (let i = start + 1; i < lines.length; i++) {
         const line = lines[i];
@@ -416,15 +481,22 @@
           continue;
         }
 
-        if (!line.startsWith("    ")) break;
-        result.push(line.slice(4));
+        const currentIndent = line.search(/\S/);
+
+        if (currentIndent <= templateIndent) break;
+
+        if (contentIndent === null) {
+          contentIndent = currentIndent;
+        }
+
+        if (currentIndent < contentIndent) break;
+        result.push(line.slice(contentIndent));
       }
 
       return result.join("\n").trim();
     }
 
-    function extractYamlBlock(yaml, fieldName) {
-      const lines = yaml.split('\n');
+    function extractYamlBlock(lines, fieldName, topIndent) {
       const blockLines = [];
       let fieldIndent = -1;
       let inBlock = false;
@@ -435,6 +507,7 @@
         if (!inBlock) {
           const match = line.match(new RegExp(`^(\\s*)${fieldName}:(\\s*.*)$`));
           if (match) {
+            if (topIndent !== null && match[1].length !== topIndent) continue;
             fieldIndent = match[1].length;
             blockLines.push(`${fieldName}:${match[2].trimEnd()}`);
             inBlock = true;
@@ -465,79 +538,119 @@
       return blockLines.length > 0 ? blockLines.join('\n') : null;
     }
 
-    function extractAdditionalFields(yaml, excludedFields) {
-      const excluded = new Set(excludedFields);
-      const lines = yaml.split("\n");
-      const fields = [];
-      let inTemplateBlock = false;
-      let skipUntilIndent = -1;
+    // Keep original layout; only swap/remove top-level fields.
+    function buildWidgetConfig(lines, topIndent, slug) {
+      const output = [];
+      let skipBlockIndent = null;
+      let insertedWidget = false;
+      let replacedType = false;
+      const topIndentStr = topIndent === null ? "" : " ".repeat(topIndent);
 
-      for (const line of lines) {
-        if (line.trim().startsWith("template: |")) {
-          inTemplateBlock = true;
-          continue;
-        }
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
 
-        if (inTemplateBlock) {
-          if (line.startsWith("    ") || line.trim() === "") {
-            continue;
-          }
-          inTemplateBlock = false;
-        }
-
-        const trimmed = line.trim();
-        if (trimmed === "") continue;
-
-        const currentIndent = line.search(/\S/);
-
-        if (skipUntilIndent >= 0) {
-          if (currentIndent <= skipUntilIndent) {
-            skipUntilIndent = -1;
+        if (skipBlockIndent !== null) {
+          const currentIndent = line.search(/\S/);
+          if (currentIndent === -1) continue;
+          if (currentIndent <= skipBlockIndent) {
+            skipBlockIndent = null;
           } else {
             continue;
           }
         }
 
-        const match = line.match(/^\s*([a-zA-Z0-9-]+):\s*(.*)$/);
-        if (!match) continue;
-
-        const key = match[1];
-        const value = match[2].trim();
-
-        if (excluded.has(key)) {
-          if (!value) skipUntilIndent = currentIndent;
+        const listTypeMatch = line.match(/^(\s*-\s*)type:\s*(.+)$/);
+        if (listTypeMatch) {
+          replacedType = true;
+          output.push(`${listTypeMatch[1]}type: dynawidgets`);
+          if (!insertedWidget) {
+            const widgetIndent = topIndent === null
+              ? listTypeMatch[1].replace(/-\s*$/, "  ")
+              : topIndentStr;
+            output.push(`${widgetIndent}widget: ${slug}`);
+            insertedWidget = true;
+          }
           continue;
         }
 
-        if (!value) continue;
+        const mapTypeMatch = line.match(/^(\s*)type:\s*(.+)$/);
+        if (mapTypeMatch && isTopLevelLine(line, topIndent)) {
+          replacedType = true;
+          output.push(`${mapTypeMatch[1]}type: dynawidgets`);
+          if (!insertedWidget) {
+            const widgetIndent = topIndent === null ? mapTypeMatch[1] : topIndentStr;
+            output.push(`${widgetIndent}widget: ${slug}`);
+            insertedWidget = true;
+          }
+          continue;
+        }
 
-        fields.push({ key, value });
+        if (line.match(/^\s*widget:\s*/)) {
+          if (isTopLevelLine(line, topIndent)) continue;
+        }
+
+        const templateMatch = line.match(/^\s*template:\s*(.*)$/);
+        if (templateMatch && isTopLevelLine(line, topIndent)) {
+          const value = templateMatch[1].trim();
+          if (value === "|" || value === ">" || value === "") {
+            skipBlockIndent = line.search(/\S/);
+          }
+          continue;
+        }
+
+        if (line.match(/^\s*url:\s*/)) {
+          if (isTopLevelLine(line, topIndent)) continue;
+        }
+
+        const headersMatch = line.match(/^\s*headers:\s*(.*)$/);
+        if (headersMatch && isTopLevelLine(line, topIndent)) {
+          if (headersMatch[1].trim() === "") {
+            skipBlockIndent = line.search(/\S/);
+          }
+          continue;
+        }
+
+        const subrequestsMatch = line.match(/^\s*subrequests:\s*(.*)$/);
+        if (subrequestsMatch && isTopLevelLine(line, topIndent)) {
+          if (subrequestsMatch[1].trim() === "") {
+            skipBlockIndent = line.search(/\S/);
+          }
+          continue;
+        }
+
+        output.push(line);
       }
 
-      return fields;
+      if (!replacedType) {
+        output.unshift(`${topIndentStr}widget: ${slug}`);
+        output.unshift(`${topIndentStr}type: dynawidgets`);
+      } else if (replacedType && !insertedWidget) {
+        output.unshift(`${topIndentStr}widget: ${slug}`);
+      }
+
+      while (output.length > 0 && output[output.length - 1].trim() === "") {
+        output.pop();
+      }
+
+      return output.join("\n");
     }
 
     function convertWidget() {
       const input = document.getElementById("input").value;
+      const lines = splitYamlLines(input);
+      const topIndent = getTopLevelIndent(lines);
       const author =
         document.getElementById("author").value.trim() || "unknown";
 
-      const title = extractField(input, "title") || "Untitled Widget";
-      const url = extractField(input, "url");
+      const title = extractField(lines, "title", topIndent) || "Untitled Widget";
+      const url = extractField(lines, "url", topIndent);
       const slug = slugify(title);
-      const template = extractTemplate(input);
-      const additionalFields = extractAdditionalFields(input, [
-        "type",
-        "url",
-        "template",
-        "headers",
-        "subrequests"
-      ]);
+      const template = extractTemplate(lines, topIndent);
 
       let templateTxt = template;
 
-      const headersBlock = extractYamlBlock(input, 'headers');
-      const subrequestsBlock = extractYamlBlock(input, 'subrequests');
+      const headersBlock = extractYamlBlock(lines, 'headers', topIndent);
+      const subrequestsBlock = extractYamlBlock(lines, 'subrequests', topIndent);
 
       if (url || headersBlock || subrequestsBlock) {
         const requiredLines = [];
@@ -550,10 +663,7 @@
         }
         templateTxt += `\n\nrequired: |\n${requiredLines.join('\n')}`;
       }
-
-      const additionalConfig = additionalFields
-        .map(field => `  ${field.key}: ${field.value}`)
-        .join("\n");
+      const widgetConfig = buildWidgetConfig(lines, topIndent, slug);
 
       const metaYml = `title: ${title}
 description: Converted custom-api widget
@@ -563,9 +673,7 @@ author: ${author}`;
 
 ## Configuration
 \`\`\`yaml
-- type: dynawidgets
-  widget: ${slug}
-${additionalConfig ? `${additionalConfig}\n` : ""}\`\`\`
+${widgetConfig}\n\`\`\`
 `;
 
       generated = {
