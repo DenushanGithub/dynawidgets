@@ -42,7 +42,7 @@ For the horizontal layout, the widget uses the `horizontal-cards` layout availab
   method: GET
   limit: 10
   in-new-tab: true
-  layout: vertical
+  layout: horizontal
   thumbnail-height: 10
 ```
 
