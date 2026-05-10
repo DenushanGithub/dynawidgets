@@ -83,6 +83,7 @@
 
 required: |
   url: ${LINKDING_URL}/api/tags/?limit=1
+  method: GET
   headers:
     Authorization: Token ${LINKDING_TOKEN}
     Accept: application/json
