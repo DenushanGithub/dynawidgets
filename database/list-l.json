@@ -1,0 +1,9 @@
+[
+  {
+    "title": "Linkding Dashboard",
+    "description": "Display statistics and recently added bookmarks from your Linkding instance",
+    "author": "whysofurious",
+    "slug": "linkding-dashboard",
+    "template": "https://raw.githubusercontent.com/Panonim/dynawidgets/refs/heads/main/widgets/linkding-dashboard/template.txt"
+  }
+]

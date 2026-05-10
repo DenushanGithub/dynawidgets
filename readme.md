@@ -7,7 +7,7 @@ You can also visit https://widgets.artur.zone/ for automated conversion.
 # --- WIDGETS LIST ---
 <!-- AUTO-GENERATED:START -->
 ## Search
-[C](#c) | [R](#r) | [T](#t)
+[C](#c) | [L](#l) | [R](#r) | [T](#t)
 
 ## C
 - [**Caddy Routes**](widgets/caddy-routes/widget.md) — External and local links to your services proxied through Caddy.
@@ -16,6 +16,10 @@ You can also visit https://widgets.artur.zone/ for automated conversion.
   - Author: whysofurious
 - [**Chess.com Daily Puzzle**](widgets/daily-chess-puzzle/widget.md) — Display daily chess puzzle from chess.com
   - Author: panonim
+
+## L
+- [**Linkding Dashboard**](widgets/linkding-dashboard/widget.md) — Display statistics and recently added bookmarks from your Linkding instance
+  - Author: whysofurious
 
 ## R
 - [**Random Dog**](widgets/random-dog/widget.md) — Display random images of dogs.
