@@ -1,0 +1,9 @@
+[
+  {
+    "title": "Todoist",
+    "description": "A single consolidated custom-api widget for Dynacat that displays your Todoist productivity data at a glance.",
+    "author": "jshields-ca",
+    "slug": "todoist",
+    "template": "https://raw.githubusercontent.com/Panonim/dynawidgets/refs/heads/main/widgets/todoist/template.txt"
+  }
+]
