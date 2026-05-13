@@ -43,6 +43,13 @@ export HOMEPAGE_VAR_EXCHANGE_KEY=your_api_key_here
 
 ## Configuration
 
+```yaml
+- type: dynawidgets
+  widget: currency-exchange-rates
+  title: Currency Exchange Rates
+  cache: 24h
+```
+
 | Variable | Required | Description |
 |---|---|---|
 | `HOMEPAGE_VAR_EXCHANGE_KEY` | Yes | Your ExchangeRate-API v6 key |
