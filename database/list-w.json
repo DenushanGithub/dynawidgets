@@ -1,0 +1,9 @@
+[
+  {
+    "title": "WakaTime",
+    "description": "Widget that pulls from the WakaTime API and displays your coding metrics.",
+    "author": "jshields-ca",
+    "slug": "wakatime",
+    "template": "https://raw.githubusercontent.com/Panonim/dynawidgets/refs/heads/main/widgets/wakatime/template.txt"
+  }
+]

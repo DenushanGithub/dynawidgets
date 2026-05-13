@@ -12,5 +12,12 @@
     "author": "whysofurious",
     "slug": "caddy-status",
     "template": "https://raw.githubusercontent.com/Panonim/dynawidgets/refs/heads/main/widgets/caddy-status/template.txt"
+  },
+  {
+    "title": "Currency Exchange Rates",
+    "description": "Widget that displays the current Canadian Dollar (CAD) exchange rate against USD and EUR, with a last-synced timestamp. This can be re-configured for any currency available in the Exchangerate-API.",
+    "author": "jshields-ca",
+    "slug": "currency-exchange-rates",
+    "template": "https://raw.githubusercontent.com/Panonim/dynawidgets/refs/heads/main/widgets/currency-exchange-rates/template.txt"
   }
 ]
