@@ -38,13 +38,13 @@ Add the following to your Dynacat `.env` file:
 
 ---
 
-## Usage
-
+## Configuration
 ```yaml
 - type: dynawidgets
   widget: todoist
   title: Todoist
-  update-interval: 10m
+  title-icon: di:todoist
+  cache: 10m
 ```
 
 ---

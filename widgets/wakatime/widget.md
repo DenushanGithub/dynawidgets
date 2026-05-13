@@ -19,7 +19,6 @@ A [Dynacat](https://github.com/Panonim/dynacat) widget that pulls from the [Waka
   title-url: https://wakatime.com
   cache: 30m
 ```
-## Configuration
 
 | Variable | Required | Description |
 |---|---|---|
