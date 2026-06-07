@@ -7,7 +7,7 @@ You can also visit https://widgets.artur.zone/ for automated conversion.
 # --- WIDGETS LIST ---
 <!-- AUTO-GENERATED:START -->
 ## Search
-[C](#c) | [L](#l) | [R](#r) | [T](#t)
+[C](#c) | [L](#l) | [R](#r) | [T](#t) | [W](#w)
 
 ## C
 - [**Caddy Routes**](widgets/caddy-routes/widget.md) — External and local links to your services proxied through Caddy.
@@ -16,6 +16,8 @@ You can also visit https://widgets.artur.zone/ for automated conversion.
   - Author: whysofurious
 - [**Chess.com Daily Puzzle**](widgets/daily-chess-puzzle/widget.md) — Display daily chess puzzle from chess.com
   - Author: panonim
+- [**Currency Exchange Rates**](widgets/currency-exchange-rates/widget.md) — Widget that displays the current Canadian Dollar (CAD) exchange rate against USD and EUR, with a last-synced timestamp. This can be re-configured for any currency available in the Exchangerate-API.
+  - Author: jshields-ca
 
 ## L
 - [**Linkding Dashboard**](widgets/linkding-dashboard/widget.md) — Display statistics and recently added bookmarks from your Linkding instance
@@ -28,4 +30,10 @@ You can also visit https://widgets.artur.zone/ for automated conversion.
 ## T
 - [**Todoist**](widgets/todoist/widget.md) — A single consolidated custom-api widget for Dynacat that displays your Todoist productivity data at a glance.
   - Author: jshields-ca
+
+## W
+- [**WakaTime**](widgets/wakatime/widget.md) — Widget that pulls from the WakaTime API and displays your coding metrics.
+  - Author: jshields-ca
+- [**Weather with Air Quality and 3-days forecast**](widgets/weather-air-quality-3-day-forecast/widget.md) — Yet another weather widget with air quality and a 3-day forecast.
+  - Author: Mayurifag
 <!-- AUTO-GENERATED:END -->
