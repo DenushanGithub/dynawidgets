@@ -1,0 +1,9 @@
+[
+  {
+    "title": "Uptime Kuma",
+    "description": "Clean widget for viewing your uptime kuma stats",
+    "author": "not-first",
+    "slug": "uptime-kuma",
+    "template": "https://raw.githubusercontent.com/Panonim/dynawidgets/refs/heads/main/widgets/uptime-kuma/template.txt"
+  }
+]

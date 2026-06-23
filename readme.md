@@ -7,7 +7,7 @@ You can also visit https://widgets.artur.zone/ for automated conversion.
 # --- WIDGETS LIST ---
 <!-- AUTO-GENERATED:START -->
 ## Search
-[C](#c) | [L](#l) | [R](#r) | [T](#t) | [W](#w)
+[C](#c) | [L](#l) | [R](#r) | [T](#t) | [U](#u) | [W](#w)
 
 ## C
 - [**Caddy Routes**](widgets/caddy-routes/widget.md) — External and local links to your services proxied through Caddy.
@@ -30,6 +30,10 @@ You can also visit https://widgets.artur.zone/ for automated conversion.
 ## T
 - [**Todoist**](widgets/todoist/widget.md) — A single consolidated custom-api widget for Dynacat that displays your Todoist productivity data at a glance.
   - Author: jshields-ca
+
+## U
+- [**Uptime Kuma**](widgets/uptime-kuma/widget.md) — Clean widget for viewing your uptime kuma stats
+  - Author: not-first
 
 ## W
 - [**WakaTime**](widgets/wakatime/widget.md) — Widget that pulls from the WakaTime API and displays your coding metrics.
