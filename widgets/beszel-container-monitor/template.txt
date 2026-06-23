@@ -1,0 +1,113 @@
+{{ $baseURL  := .Options.StringOr "base-url" "" }}
+{{ $apiToken := .Options.StringOr "api-token"  "" }} {{/* Updated key name */}}
+
+{{ $resp := newRequest (print $baseURL "/api/collections/containers/records")
+  | withHeader "Authorization" (print "Bearer " $apiToken)
+  | withParameter "sort" "name"
+  | withParameter "fields" "name,cpu,memory,net,health,image,status"
+  | getResponse }}
+
+{{ $containers := $resp.JSON.Array "items" }}
+
+{{ if gt (len $containers) 0 }}
+<style>
+  .cs-wrap-beszel::-webkit-scrollbar { width: 4px; height: 4px; }
+  .cs-wrap-beszel::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, currentColor 15%, transparent);
+    border-radius: 4px;
+  }
+  .cs-tbl-beszel { width: 100%; border-collapse: collapse; table-layout: auto; }
+  .cs-tbl-beszel tbody tr:nth-child(even) {
+    background: color-mix(in srgb, currentColor 4%, transparent);
+  }
+  .cs-tbl-beszel tr { border-bottom: 1px solid color-mix(in srgb, currentColor 4%, transparent); }
+  .cs-tbl-beszel thead tr { border-bottom-color: color-mix(in srgb, currentColor 15%, transparent); }
+  .cs-tbl-beszel th, .cs-tbl-beszel td { white-space: nowrap; padding: 6px; }
+  .cs-tbl-beszel th {
+    position: sticky; top: 0; z-index: 2;
+    background: hsl(var(--bgh), var(--bgs), calc(var(--bgl) + 1%));
+    box-shadow: 0 2px 0 color-mix(in srgb, currentColor 8%, transparent);
+    color: var(--color-text-base); font-weight: 700;
+    text-transform: uppercase;
+  }
+  .cs-left-align-beszel { text-align: left; }
+  .cs-right-align-beszel { text-align: right; }
+  .cs-center-align-beszel  { text-align: center; }
+  .cs-first-beszel { padding-left: 0; }
+  .cs-last-beszel  { padding-right: 0; }
+  .cs-name-beszel { color: var(--color-text-base); font-weight: 600; max-width: 140px; overflow: hidden; text-overflow: ellipsis; }
+  .cs-img-beszel  { color: var(--color-text-subdue); max-width: 130px; overflow: hidden; text-overflow: ellipsis; }
+  .cs-status-beszel { color: var(--color-text-subdue); }
+  .cs-pos-beszel  { color: var(--color-positive); }
+  .cs-neg-beszel  { color: var(--color-negative); }
+  .cs-base-beszel { color: var(--color-text-base); }
+</style>
+
+<div class="cs-wrap-beszel" style="max-height:360px;overflow:auto;border-radius:6px;">
+  <table class="cs-tbl-beszel size-h5">
+    <thead>
+      <tr>
+        <th class="cs-left-align-beszel cs-first-beszel">Name</th>
+        <th class="cs-right-align-beszel">CPU</th>
+        <th class="cs-right-align-beszel">Memory</th>
+        <th class="cs-right-align-beszel">Network</th>
+        <th class="cs-center-align-beszel">Health</th>
+        <th class="cs-left-align-beszel">Image</th>
+        <th class="cs-left-align-beszel cs-last-beszel">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ range $containers }}
+      {{ $cpuPercent  := .Float "cpu" }}
+      {{ $memoryMB    := .Float "memory" }}
+      {{ $networkBps  := .Float "net" }}
+      {{ $healthState := .Int   "health" }}
+
+      {{ $cpuIsHigh    := ge $cpuPercent 10.0 }}
+      {{ $memoryIsHigh := ge $memoryMB 1024.0 }}
+      {{ $networkIsHigh := ge $networkBps 102400.0 }}
+      {{ $networkIsMB  := ge $networkBps 1048576.0 }}
+      {{ $networkIsKB  := ge $networkBps 1024.0 }}
+
+      {{ $isHealthy    := eq $healthState 2 }}
+      {{ $isUnhealthy  := eq $healthState 1 }}
+
+      <tr>
+        <td class="cs-left-align-beszel cs-first-beszel cs-name-beszel">{{ .String "name" }}</td>
+
+        <td class="cs-right-align-beszel {{ if $cpuIsHigh }}cs-neg-beszel{{ else }}cs-base-beszel{{ end }}">
+          {{- printf "%.2f" $cpuPercent }}%
+        </td>
+
+        <td class="cs-right-align-beszel {{ if $memoryIsHigh }}cs-neg-beszel{{ else }}cs-base-beszel{{ end }}">
+          {{- if $memoryIsHigh }}{{ printf "%.2f" (div $memoryMB 1024.0) }} GB
+          {{- else }}{{ printf "%.0f" $memoryMB }} MB{{ end }}
+        </td>
+
+        <td class="cs-right-align-beszel {{ if $networkIsHigh }}cs-neg-beszel{{ else }}cs-base-beszel{{ end }}">
+          {{- if $networkIsMB }}{{ printf "%.1f" (div $networkBps 1048576.0) }} MB/s
+          {{- else if $networkIsKB }}{{ printf "%.1f" (div $networkBps 1024.0) }} KB/s
+          {{- else }}{{ printf "%.0f" $networkBps }} B/s{{ end }}
+        </td>
+
+        <td class="cs-center-align-beszel">
+          {{- if $isHealthy }}<span class="cs-pos-beszel" title="Healthy">●</span>
+          {{- else if $isUnhealthy }}<span class="cs-neg-beszel" title="Unhealthy">●</span>
+          {{- else }}<span class="color-subdue" title="No healthcheck">—</span>{{ end }}
+        </td>
+
+        <td class="cs-left-align-beszel cs-img-beszel">{{ .String "image" }}</td>
+        <td class="cs-left-align-beszel cs-last-beszel cs-status-beszel">{{ .String "status" }}</td>
+      </tr>
+      {{ end }}
+    </tbody>
+  </table>
+</div>
+{{ else }}
+<p class="color-subdue">No containers found.</p>
+{{ end }}
+
+required: |
+  options:
+    base-url: "${BESZEL_URL}"    
+    api-token: "${BESZEL_API_TOKEN}" 
