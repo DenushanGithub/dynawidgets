@@ -12,17 +12,16 @@ This widget provides an overview of your Docker containers' resource usage, upti
 - type: dynawidgets
   widget: beszel-container-monitor
   title: Docker Container Status
+  url: "${BESZEL_URL}"  
+  api-token: "${BESZEL_API_TOKEN}" 
   update-interval: 60s
-  options:
-    base-url: "${BESZEL_URL}"    
-    api-token: "${BESZEL_API_TOKEN}" 
 ```
 
 ## Options
 
 | Option       | Required | Description                                     | 
 | ------------ | -------- | ----------------------------------------------- |
-| `base-url`   | Yes      | URL of your Beszel instance. For example, `http://192.168.1.XX:8090`                   |
+| `url`   | Yes      | URL of your Beszel instance. For example, `http://192.168.1.XX:8090`                   |
 | `api-token`  | Yes      | Your Beszel token used for authentication.      |
 
 <details>
